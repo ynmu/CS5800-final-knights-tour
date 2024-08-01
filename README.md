@@ -16,6 +16,11 @@ This repo contains an implementation of the Knight's Tour algorithm, as well as 
 - **Optimization:** To reduce computation time, the visualization is demonstrated on a smaller, fixed-size board of 4x3.
 - **Future Enhancements** Consider replacing the "Knight" text with an image of a chess piece for better visual representation.
 
+Below is a GIF demonstrating the backtracking process:
+
+![Knight's Tour Backtracking Demo](knightdemo.gif)
+
+
 ### Visualization of the Solution
 
 - **Status:** To do

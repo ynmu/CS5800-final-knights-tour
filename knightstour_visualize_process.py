@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from knightstour import KnightsTour
 import matplotlib.image as mpimg
-from matplotlib.animation import FuncAnimation
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 
 # The size of the board and the starting position of the knight
@@ -74,10 +74,18 @@ texts = [
     for i in range(ROWS)
 ]
 
+# Store the image box for the knight piece
+imagebox = None
+
 
 # Update function for visualizing each step of the tour
 def update():
+    global imagebox
     chessboard.fill(-1)
+    # Remove the existing imagebox if it exists
+    for artist in ax.artists:
+        artist.remove()
+
     for i in range(ROWS):
         for j in range(COLS):
             texts[i][j].set_text('')
@@ -89,11 +97,23 @@ def update():
             texts[x][y].set_text(str(pos))
             if i == step - 1:
                 # show the image
-                texts[x][y].set_text('Knight')
+                img = mpimg.imread(CHESS_PIECE_IMG)
+                imagebox = OffsetImage(img, zoom=0.12)
+                ab = AnnotationBbox(imagebox, (y + 0.5, x + 0.5),
+                                    frameon=False)
+                ax.add_artist(ab)
+                # adjust the style and position of text to match the image
+                texts[x][y].set_color('white')
+                texts[x][y].set_zorder(10)
+                current_x, current_y = texts[x][y].get_position()
+                texts[x][y].set_position((current_x - 0.03, current_y + 0.16))
+            else:
+                # reset the style and position of text
+                texts[x][y].set_color('black')
+                texts[x][y].set_position((y + 0.5, x + 0.5))
         else:
             chessboard[x, y] = -1  # Reset the cell during backtracking
             texts[x][y].set_text('')
-            # hide the chess piece
 
     fig.canvas.draw_idle()
 

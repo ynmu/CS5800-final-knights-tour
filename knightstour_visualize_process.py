@@ -74,6 +74,21 @@ texts = [
     for i in range(ROWS)
 ]
 
+
+remove_symbols = [
+    [
+        ax.text(
+            j + 0.5, i + 0.5,
+            '',
+            ha='center', va='center',
+            fontsize=50, color='#db382a',
+            font='Arial', weight='ultralight'
+        )
+        for j in range(COLS)
+    ]
+    for i in range(ROWS)
+]
+
 # Store the image box for the knight piece
 imagebox = None
 
@@ -95,6 +110,7 @@ def update():
         if pos != -1:
             chessboard[x, y] = pos
             texts[x][y].set_text(str(pos))
+            remove_symbols[x][y].set_text('')
             if i == step - 1:
                 # show the image
                 img = mpimg.imread(CHESS_PIECE_IMG)
@@ -105,16 +121,16 @@ def update():
                 # adjust the style and position of text to match the image
                 texts[x][y].set_color('white')
                 texts[x][y].set_zorder(10)
-                current_x, current_y = texts[x][y].get_position()
-                texts[x][y].set_position((current_x - 0.03, current_y + 0.16))
+                texts[x][y].set_position((y + 0.47, x + 0.66))
             else:
                 # reset the style and position of text
                 texts[x][y].set_color('black')
                 texts[x][y].set_position((y + 0.5, x + 0.5))
         else:
             chessboard[x, y] = -1  # Reset the cell during backtracking
-            texts[x][y].set_text('')
-
+            # texts[x][y].set_text('')
+            remove_symbols[x][y].set_text('x')
+            remove_symbols[x][y].set_zorder(10)
     fig.canvas.draw_idle()
 
 

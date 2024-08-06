@@ -3,10 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from knightstour import KnightsTour
 import matplotlib.image as mpimg
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import sys
 import tkinter as tk
 from tkinter import messagebox
+from matplotlib.animation import FuncAnimation
 
 
 class InputDialog:
@@ -43,18 +42,27 @@ class InputDialog:
         self.result = None
 
     def confirm(self):
-        # Retrieve values from spinboxes
-        rows = int(self.row_spinbox.get())
-        cols = int(self.col_spinbox.get())
-        start_row = int(self.start_row_spinbox.get())
-        start_col = int(self.start_col_spinbox.get())
+        try:
+            # Retrieve values from spinboxes
+            rows = int(self.row_spinbox.get())
+            cols = int(self.col_spinbox.get())
+            start_row = int(self.start_row_spinbox.get())
+            start_col = int(self.start_col_spinbox.get())
 
-        # Validate starting position
-        if start_row < rows and start_col < cols:
-            self.result = (rows, cols, start_row, start_col)
-            self.window.destroy()
-        else:
-            messagebox.showerror("Invalid Input", "Starting position must be within board dimensions.")
+            # Validate starting position
+            if start_row < rows and start_col < cols:
+                self.result = (rows, cols, start_row, start_col)
+                self.window.destroy()
+            else:
+                messagebox.showerror(
+                    "Invalid Input",
+                    "Starting position must be within board dimensions."
+                )
+        except ValueError:
+            messagebox.showerror(
+                "Invalid Input",
+                "Please enter valid integer values for all fields."
+            )
 
     def get_result(self):
         return self.result
@@ -62,16 +70,18 @@ class InputDialog:
 
 class KTVisualization:
     def __init__(self, rows, cols, start_row, start_col):
+        self.CHESS_PIECE_IMG = 'knight.png'
+        self.BROWN = '#b08974'
+        self.BEIGE = '#ede7df'
+        self.SIZE_MULTIPLIER = 1 / max(rows, cols)
+
         self.rows = rows
         self.cols = cols
         self.start_row = start_row
         self.start_col = start_col
-        self.CHESS_PIECE_IMG = 'knight.png'
-        self.BROWN = '#b08974'
-        self.BEIGE = '#ede7df'
         self.step = 0
         self.chessboard = np.full((self.rows, self.cols), -1)
-        self.fig, self.ax = plt.subplots(figsize=(6, 6))
+        self.fig, self.ax = plt.subplots(figsize=(7, 7))
         self.texts = None
         self.remove_symbols = None
         self.imagebox = None
@@ -103,7 +113,8 @@ class KTVisualization:
                 -0.3, i + 0.5,
                 str(self.rows - i),
                 ha='center', va='center',
-                fontsize=24, color='black',
+                fontsize=80 * self.SIZE_MULTIPLIER,
+                color='black', weight='bold',
                 font='Arial'
             )
         for j in range(self.cols):
@@ -111,7 +122,8 @@ class KTVisualization:
                 j + 0.5, -0.3,
                 chr(65 + j),
                 ha='center', va='center',
-                fontsize=24, color='black',
+                fontsize=80 * self.SIZE_MULTIPLIER,
+                color='black', weight='bold',
                 font='Arial'
             )
 
@@ -128,7 +140,8 @@ class KTVisualization:
                     j + 0.5, i + 0.5,
                     '',
                     ha='center', va='center',
-                    fontsize=24, color='black',
+                    fontsize=80 * self.SIZE_MULTIPLIER,
+                    color='black',
                     font='Arial', weight='bold'
                 )
                 for j in range(self.cols)
@@ -143,7 +156,8 @@ class KTVisualization:
                     j + 0.5, i + 0.5,
                     '',
                     ha='center', va='center',
-                    fontsize=50, color='#db382a',
+                    fontsize=200 * self.SIZE_MULTIPLIER,
+                    color='#db382a',
                     font='Arial', weight='ultralight'
                 )
                 for j in range(self.cols)
@@ -168,16 +182,8 @@ class KTVisualization:
                 self.texts[x][y].set_text(str(pos))
                 self.remove_symbols[x][y].set_text('')
                 if pos == self.step - 1:
-                    # Show the image
-                    img = mpimg.imread(self.CHESS_PIECE_IMG)
-                    self.imagebox = OffsetImage(img, zoom=0.12)
-                    ab = AnnotationBbox(self.imagebox, (y + 0.5, x + 0.5),
-                                        frameon=False)
-                    self.ax.add_artist(ab)
-                    # Adjust the style and position of text to match the image
-                    self.texts[x][y].set_color('white')
-                    self.texts[x][y].set_zorder(10)
-                    self.texts[x][y].set_position((y + 0.47, x + 0.66))
+                    start_pos = moves[self.step - 2] if self.step > 1 else (self.start_row, self.start_col)
+                    self.show_motion(start_pos, (x, y))
                 else:
                     # Reset the style and position of text
                     self.texts[x][y].set_color('black')
@@ -191,6 +197,8 @@ class KTVisualization:
     def continue_step(self, e):
         if self.step < len(self.moves):
             self.step += 1
+        else:
+            return
         self.update(self.moves)
 
     def reverse_step(self, e):
@@ -205,21 +213,46 @@ class KTVisualization:
     def quit_visual(self, e):
         plt.close()
 
-    def update_moves_solution(self):
+    def store_moves(self):
         kt = KnightsTour(self.rows, self.cols, self.start_row, self.start_col)
         solution_board = kt.solve()
-        self.moves = [[0, 0] for _ in range(self.rows * self.cols)]
         if solution_board is not None:
+            self.moves = [(0, 0) for _ in range(self.rows * self.cols)]
             for i in range(self.rows):
                 for j in range(self.cols):
-                    self.moves[solution_board[i][j]] = [i, j]
-        else:
-            sys.exit(f'No solution found for {self.rows}x{self.cols} board, '
-                     f'starting from row {self.start_row}, column {self.start_col}')
+                    self.moves[solution_board[i][j]] = (i, j)
+
+    def show_motion(self, start_pos, end_pos):
+        # Load the checker piece image
+        checker_img = mpimg.imread(self.CHESS_PIECE_IMG)
+        imagebox = self.ax.imshow(checker_img, extent=[0, 1, 0, 1], origin='lower')
+
+        # Animation function
+        def animate(frame):
+            x, y = frame
+            imagebox.set_extent([x, x + 1, y, y + 1])
+            return imagebox,
+
+        # Create list of coordinates for animation
+        steps = 10
+        x_coords = np.linspace(start_pos[1], end_pos[1], steps)
+        y_coords = np.linspace(start_pos[0], end_pos[0], steps)
+        frames = list(zip(x_coords, y_coords))
+
+        # Create the animation
+        ani = FuncAnimation(self.fig, animate, frames=frames, interval=10, blit=True, repeat=False)
+
+        plt.show()
 
     def visualize_solution(self):
         # Solve the knight's tour and store moves
-        self.update_moves_solution()
+        self.store_moves()
+        if self.moves is None:
+            messagebox.showerror(
+                "No Solution",
+                "No solution found for the given board."
+            )
+            return
 
         # Add continue button
         axcontinue = plt.axes([0.25, 0.05, 0.15, 0.075])
@@ -241,9 +274,8 @@ class KTVisualization:
 
 
 if __name__ == '__main__':
-    # create main tkinter window
     root = tk.Tk()
-    root.withdraw()  # hide the root window
+    root.withdraw()
 
     dialog = InputDialog(root)
 
@@ -256,7 +288,6 @@ if __name__ == '__main__':
         rows, cols, start_row, start_col = input_data
         # Initialize and run the visualization
         kt_visual = KTVisualization(rows, cols, start_row, start_col)
-        # Set `process=True` if you want to visualize the process with backtracking
-        kt_visual.visualize(process=False)
+        kt_visual.visualize_solution()
     else:
-        print("Input was canceled or invalid.")
+        print("Input was canceled.")

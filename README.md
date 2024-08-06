@@ -18,7 +18,7 @@ This repo contains an implementation of the Knight's Tour algorithm, as well as 
 
 Below is a GIF demonstrating the backtracking process:
 
-![Knight's Tour Backtracking Demo](knightdemo.gif)
+![Knight's Tour Backtracking Demo](knightstourdemo.gif)
 
 
 ### Visualization of the Solution

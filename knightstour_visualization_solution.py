@@ -36,12 +36,12 @@ class InputDialog:
         self.start_col_spinbox.pack(pady=5)
 
         # Confirm button
-        tk.Button(self.window, text="Confirm", command=self.confirm).pack(pady=10)
+        tk.Button(self.window, text="Confirm", command=self._confirm).pack(pady=10)
 
         # Initialize result
         self.result = None
 
-    def confirm(self):
+    def _confirm(self):
         try:
             # Retrieve values from spinboxes
             rows = int(self.row_spinbox.get())
@@ -87,9 +87,9 @@ class KTVisualization:
         self.imagebox = None
         self.moves = None
 
-        self.init_board()
+        self._init_board()
 
-    def init_board(self):
+    def _init_board(self):
         self.ax.set_xlim(0, self.cols)
         self.ax.set_ylim(0, self.rows)
         self.ax.set_xticks(np.arange(self.cols))
@@ -129,10 +129,10 @@ class KTVisualization:
 
         plt.gca().set_aspect('equal', adjustable='box')
 
-        self.init_texts()
-        self.init_remove_symbols()
+        self._init_texts()
+        self._init_remove_symbols()
 
-    def init_texts(self):
+    def _init_texts(self):
         # Initialize the number display in each cell (empty at the beginning)
         self.texts = [
             [
@@ -149,7 +149,7 @@ class KTVisualization:
             for i in range(self.rows)
         ]
 
-    def init_remove_symbols(self):
+    def _init_remove_symbols(self):
         self.remove_symbols = [
             [
                 self.ax.text(
@@ -165,7 +165,7 @@ class KTVisualization:
             for i in range(self.rows)
         ]
 
-    def update(self, moves):
+    def _update(self, moves):
         self.chessboard.fill(-1)
         # Remove the existing imagebox if it exists
         for artist in self.ax.artists:
@@ -183,7 +183,7 @@ class KTVisualization:
                 self.remove_symbols[x][y].set_text('')
                 if pos == self.step - 1:
                     start_pos = moves[self.step - 2] if self.step > 1 else (self.start_row, self.start_col)
-                    self.show_motion(start_pos, (x, y))
+                    self._show_motion(start_pos, (x, y))
                 else:
                     # Reset the style and position of text
                     self.texts[x][y].set_color('black')
@@ -194,26 +194,26 @@ class KTVisualization:
                 self.remove_symbols[x][y].set_zorder(10)
         self.fig.canvas.draw_idle()
 
-    def continue_step(self, e):
+    def _continue_step(self, e):
         if self.step < len(self.moves):
             self.step += 1
         else:
             return
-        self.update(self.moves)
+        self._update(self.moves)
 
-    def reverse_step(self, e):
+    def _reverse_step(self, e):
         if self.step > 0:
             self.step -= 1
-        self.update(self.moves)
+        self._update(self.moves)
 
-    def reset_step(self, e):
+    def _reset_step(self, e):
         self.step = 0
-        self.update(self.moves)
+        self._update(self.moves)
 
-    def quit_visual(self, e):
+    def _quit_visual(self, e):
         plt.close()
 
-    def store_moves(self):
+    def _store_moves(self):
         kt = KnightsTour(self.rows, self.cols, self.start_row, self.start_col)
         solution_board = kt.solve()
         if solution_board is not None:
@@ -222,7 +222,7 @@ class KTVisualization:
                 for j in range(self.cols):
                     self.moves[solution_board[i][j]] = (i, j)
 
-    def show_motion(self, start_pos, end_pos):
+    def _show_motion(self, start_pos, end_pos):
         # Load the checker piece image
         checker_img = mpimg.imread(self.CHESS_PIECE_IMG)
         imagebox = self.ax.imshow(checker_img, extent=[0, 1, 0, 1], origin='lower')
@@ -246,7 +246,7 @@ class KTVisualization:
 
     def visualize_solution(self):
         # Solve the knight's tour and store moves
-        self.store_moves()
+        self._store_moves()
         if self.moves is None:
             messagebox.showerror(
                 "No Solution",
@@ -257,17 +257,17 @@ class KTVisualization:
         # Add continue button
         axcontinue = plt.axes([0.25, 0.05, 0.15, 0.075])
         bcontinue = Button(axcontinue, 'Continue')
-        bcontinue.on_clicked(self.continue_step)
+        bcontinue.on_clicked(self._continue_step)
 
         # Add reset button
         axreverse = plt.axes([0.45, 0.05, 0.15, 0.075])
         breverse = Button(axreverse, 'Reset')
-        breverse.on_clicked(self.reset_step)
+        breverse.on_clicked(self._reset_step)
 
         # Add option to quit
         axquit = plt.axes([0.65, 0.05, 0.15, 0.075])
         bquit = Button(axquit, 'Quit')
-        bquit.on_clicked(self.quit_visual)
+        bquit.on_clicked(self._quit_visual)
 
         # Display the animation
         plt.show()

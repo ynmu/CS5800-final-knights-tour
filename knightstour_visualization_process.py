@@ -10,7 +10,7 @@ class KTVisualizationProcess(KTVisualization):
     def __init__(self, rows, cols, start_row, start_col):
         super().__init__(rows, cols, start_row, start_col)
 
-    def update(self, moves):
+    def _update(self, moves):
         self.chessboard.fill(-1)
         # Remove the existing imagebox if it exists
         for artist in self.ax.artists:
@@ -48,24 +48,24 @@ class KTVisualizationProcess(KTVisualization):
                 self.remove_symbols[x][y].set_zorder(10)
         self.fig.canvas.draw_idle()
 
-    def store_moves(self):
+    def _store_moves(self):
         kt = KnightsTour(self.rows, self.cols, self.start_row, self.start_col)
         kt.solve()
         self.moves = kt.getMoves()
 
-    def continue_step(self, e):
+    def _continue_step(self, e):
         if self.step < len(self.moves):
             self.step += 1
-        self.update(self.moves)
+        self._update(self.moves)
 
     def visualize_process(self):
         # Solve the knight's tour and store moves
-        self.store_moves()
+        self._store_moves()
 
         # Add continue button
         axcontinue = plt.axes([0.25, 0.05, 0.15, 0.075])
         bcontinue = Button(axcontinue, 'Continue')
-        bcontinue.on_clicked(self.continue_step)
+        bcontinue.on_clicked(self._continue_step)
 
         # Add reverse button
         axreverse = plt.axes([0.45, 0.05, 0.15, 0.075])

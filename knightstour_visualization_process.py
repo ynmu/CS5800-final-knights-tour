@@ -70,12 +70,12 @@ class KTVisualizationProcess(KTVisualization):
         # Add reverse button
         axreverse = plt.axes([0.45, 0.05, 0.15, 0.075])
         breverse = Button(axreverse, 'Reverse')
-        breverse.on_clicked(self.reverse_step)
+        breverse.on_clicked(self._reverse_step)
 
         # Add option to quit
         axquit = plt.axes([0.65, 0.05, 0.15, 0.075])
         bquit = Button(axquit, 'Quit')
-        bquit.on_clicked(self.quit_visual)
+        bquit.on_clicked(self._quit_visual)
 
         # Display the animation
         plt.show()

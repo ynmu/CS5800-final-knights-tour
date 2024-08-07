@@ -17,12 +17,13 @@ class InputDialog:
 
         # Row input
         tk.Label(self.window, text="Number of rows:").pack(pady=5)
-        self.row_spinbox = tk.Spinbox(self.window, from_=1, to=8, width=5)
+        # default to 3x4 board
+        self.row_spinbox = tk.Spinbox(self.window, from_=1, to=8, width=5, value=3)
         self.row_spinbox.pack(pady=5)
 
         # Column input
         tk.Label(self.window, text="Number of columns:").pack(pady=5)
-        self.col_spinbox = tk.Spinbox(self.window, from_=1, to=8, width=5)
+        self.col_spinbox = tk.Spinbox(self.window, from_=1, to=8, width=5, value=4)
         self.col_spinbox.pack(pady=5)
 
         # Starting row input
@@ -234,13 +235,13 @@ class KTVisualization:
             return imagebox,
 
         # Create list of coordinates for animation
-        steps = 10
+        steps = 20
         x_coords = np.linspace(start_pos[1], end_pos[1], steps)
         y_coords = np.linspace(start_pos[0], end_pos[0], steps)
         frames = list(zip(x_coords, y_coords))
 
         # Create the animation
-        ani = FuncAnimation(self.fig, animate, frames=frames, interval=10, blit=True, repeat=False)
+        ani = FuncAnimation(self.fig, animate, frames=frames, interval=3, blit=True, repeat=False)
 
         plt.show()
 
